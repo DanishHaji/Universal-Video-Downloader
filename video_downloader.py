@@ -28,7 +28,6 @@ st.markdown("""
             background-color: #E8F5E9;
             text-align: center;
         }
-        /* Centering thumbnail */
         .stImage {
             display: flex;
             justify-content: center;
@@ -64,6 +63,8 @@ def download_video(url, format_type, resolution, audio_bitrate=None):
         os.makedirs('downloads', exist_ok=True)
 
         if format_type == "audio":
+            # Clean audio bitrate (e.g., "256kbps" → "256")
+            bitrate_clean = re.sub(r"\D", "", audio_bitrate)
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'outtmpl': 'downloads/%(title)s.%(ext)s',
@@ -71,7 +72,7 @@ def download_video(url, format_type, resolution, audio_bitrate=None):
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
-                    'preferredquality': audio_bitrate  # Set audio bitrate here
+                    'preferredquality': bitrate_clean
                 }]
             }
         else:
@@ -109,7 +110,6 @@ if url:
         video_info = get_video_info(url)
 
     if video_info:
-        # Center the thumbnail
         st.image(video_info['thumbnail'], width=400, use_container_width=True)
         st.subheader(video_info['title'])
         minutes, seconds = divmod(video_info['duration'], 60)
@@ -119,10 +119,10 @@ if url:
         if download_type == "Video":
             resolution = st.selectbox("Select Resolution:", ["144p", "360p", "480p", "720p", "1080p"])
             format_type = "video"
+            audio_bitrate = None
         else:
             resolution = None
             format_type = "audio"
-            # Audio bitrate selection
             audio_bitrate = st.selectbox("Select Audio Bitrate:", ["132kbps", "256kbps", "320kbps"])
 
         if st.button("Download"):
